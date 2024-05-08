@@ -5,6 +5,31 @@ provider "google" {
   region      = "us-west1"
 }
 
+variable "local_ip" {
+  description = "The IP address of the local machine"
+  default     = "166.70.229.151/32"
+}
+
+variable "vpc_cidr" {
+  description = "The CIDR block for the VPC"
+  default     = "10.0.0.0/16"
+}
+
+variable "region" {
+    description = "The GCP region"
+    default     = "us-west1"
+}
+
+variable "zone" {
+    description = "The GCP zone"
+    default     = "us-west1-c"
+}
+
+variable "node_count" {
+    description = "The number of nodes to create"
+    default     = 1
+}
+
 resource "google_compute_network" "vpc_network" {
   name                    = "k8s-cka"
   auto_create_subnetworks = false
@@ -12,8 +37,8 @@ resource "google_compute_network" "vpc_network" {
 
 resource "google_compute_subnetwork" "vpc_subnetwork" {
   name          = "k8s-nodes"
-  ip_cidr_range = "10.0.0.0/16"
-  region        = "us-west1"
+  ip_cidr_range = var.vpc_cidr
+  region        = var.region
   network       = google_compute_network.vpc_network.self_link
 }
 
@@ -26,13 +51,38 @@ resource "google_compute_firewall" "allow_ssh_jumpbox" {
     ports    = ["22"]
   }
 
-  source_ranges = ["166.70.229.151/32"]  // Allows SSH access from my IP address
+  source_ranges = [var.local_ip]
 
   target_tags = ["ssh"]
 }
 
+resource "google_compute_firewall" "allow_internal" {
+  name    = "allow-all-internal"
+  network = google_compute_network.vpc_network.name
+
+  allow {
+    protocol = "icmp"
+  }
+
+  allow {
+    protocol = "tcp"
+    ports    = ["0-65535"]
+  }
+
+  allow {
+    protocol = "udp"
+    ports    = ["0-65535"]
+  }
+
+  source_ranges = [var.vpc_cidr]
+  direction     = "INGRESS"
+  priority      = 1000
+  description   = "Allow internal traffic within the VPC"
+}
+
+
 resource "google_dns_managed_zone" "k8s-cka" {
-  name        = "internal"
+  name        = "k8s-cka-internal"
   dns_name    = "internal."
   description = "Private zone for internal DNS"
   visibility  = "private"
@@ -102,12 +152,12 @@ resource "google_compute_instance" "jumpbox" {
   }
 
   tags = ["ssh"]
-  zone = "us-west1-c"
+  zone = var.zone
 }
 
 
 resource "google_compute_instance" "k8s-node" {
-  count = 1
+  count = var.node_count
 
   boot_disk {
     auto_delete = true
@@ -152,5 +202,5 @@ resource "google_compute_instance" "k8s-node" {
     enable_vtpm                 = true
   }
 
-  zone = "us-west1-c"
+  zone = var.zone
 }
