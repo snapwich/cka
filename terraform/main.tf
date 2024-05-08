@@ -25,9 +25,14 @@ variable "zone" {
     default     = "us-west1-c"
 }
 
-variable "node_count" {
-    description = "The number of nodes to create"
-    default     = 1
+variable "cp_count" {
+  description = "The number of control plane nodes to create"
+  default     = 1
+}
+
+variable "worker_count" {
+  description = "The number of worker nodes to create"
+  default     = 1
 }
 
 resource "google_compute_network" "vpc_network" {
@@ -117,13 +122,22 @@ resource "google_dns_managed_zone" "k8s-cka" {
   }
 }
 
-resource "google_dns_record_set" "k8s_nodes" {
-  count        = length(google_compute_instance.k8s-node)
-  name         = "${google_compute_instance.k8s-node[count.index].name}.internal."
+resource "google_dns_record_set" "k8s_nodes_cp" {
+  count        = var.cp_count
+  name         = "${module.k8s-node-cp.k8s-node[count.index].name}.internal."
   type         = "A"
   ttl          = 300
   managed_zone = google_dns_managed_zone.k8s-cka.name
-  rrdatas      = [google_compute_instance.k8s-node[count.index].network_interface[0].network_ip]
+  rrdatas      = [module.k8s-node-cp.k8s-node[count.index].network_interface[0].network_ip]
+}
+
+resource "google_dns_record_set" "k8s_nodes_worker" {
+  count        = var.worker_count
+  name         = "${module.k8s-node-worker.k8s-node[count.index].name}.internal."
+  type         = "A"
+  ttl          = 300
+  managed_zone = google_dns_managed_zone.k8s-cka.name
+  rrdatas      = [module.k8s-node-worker.k8s-node[count.index].network_interface[0].network_ip]
 }
 
 resource "google_compute_instance" "jumpbox" {
@@ -179,51 +193,25 @@ resource "google_compute_instance" "jumpbox" {
 }
 
 
-resource "google_compute_instance" "k8s-node" {
-  count = var.node_count
+locals {
+  node_types = tomap({
+    "cp"     = var.cp_count
+    "worker" = var.worker_count
+  })
+}
 
-  boot_disk {
-    auto_delete = true
-    device_name = "k8s-node-${count.index}"
+module "k8s-node-cp" {
+  source      = "./modules/k8s-node"
+  node_count  = var.cp_count
+  node_type   = "cp"
+  subnetwork  = google_compute_subnetwork.vpc_subnetwork.self_link
+  zone        = var.zone
+}
 
-    initialize_params {
-      image = "projects/debian-cloud/global/images/debian-12-bookworm-v20240415"
-      size  = 10
-      type  = "pd-standard"
-    }
-
-    mode = "READ_WRITE"
-  }
-
-  can_ip_forward      = true
-  deletion_protection = false
-  enable_display      = false
-
-  labels = {
-    goog-ec-src = "vm_add-tf"
-  }
-
-  machine_type = "e2-standard-2"
-  name         = "k8s-node-${count.index}"
-
-  network_interface {
-    queue_count = 0
-    stack_type  = "IPV4_ONLY"
-    subnetwork  = google_compute_subnetwork.vpc_subnetwork.self_link
-  }
-
-  scheduling {
-    automatic_restart   = true
-    on_host_maintenance = "MIGRATE"
-    preemptible         = false
-    provisioning_model  = "STANDARD"
-  }
-
-  shielded_instance_config {
-    enable_integrity_monitoring = true
-    enable_secure_boot          = false
-    enable_vtpm                 = true
-  }
-
-  zone = var.zone
+module "k8s-node-worker" {
+  source      = "./modules/k8s-node"
+  node_count  = var.worker_count
+  node_type   = "worker"
+  subnetwork  = google_compute_subnetwork.vpc_subnetwork.self_link
+  zone        = var.zone
 }
