@@ -122,6 +122,14 @@ resource "google_dns_managed_zone" "k8s-cka" {
   }
 }
 
+resource "google_dns_record_set" "k8s_cp" {
+  name         = "k8s-cp.internal."
+  type         = "A"
+  ttl          = 300
+  managed_zone = google_dns_managed_zone.k8s-cka.name
+  rrdatas      = [module.k8s-node-cp.k8s-node[0].network_interface[0].network_ip]
+}
+
 resource "google_dns_record_set" "k8s_nodes_cp" {
   count        = var.cp_count
   name         = "${module.k8s-node-cp.k8s-node[count.index].name}.internal."
