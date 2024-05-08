@@ -1,3 +1,5 @@
+#!/bin/bash
+
 K8S_VERSION=1.30
 
 sudo apt-get update

@@ -5,36 +5,6 @@ provider "google" {
   region      = "us-west1"
 }
 
-variable "local_ip" {
-  description = "The IP address of the local machine"
-  default     = "166.70.229.151/32"
-}
-
-variable "vpc_cidr" {
-  description = "The CIDR block for the VPC"
-  default     = "10.0.0.0/16"
-}
-
-variable "region" {
-    description = "The GCP region"
-    default     = "us-west1"
-}
-
-variable "zone" {
-    description = "The GCP zone"
-    default     = "us-west1-c"
-}
-
-variable "cp_count" {
-  description = "The number of control plane nodes to create"
-  default     = 1
-}
-
-variable "worker_count" {
-  description = "The number of worker nodes to create"
-  default     = 1
-}
-
 resource "google_compute_network" "vpc_network" {
   name                    = "k8s-cka"
   auto_create_subnetworks = false
@@ -103,7 +73,7 @@ resource "google_compute_firewall" "allow_internal" {
     ports    = ["0-65535"]
   }
 
-  source_ranges = [var.vpc_cidr]
+  source_ranges = [var.vpc_cidr, var.pod_cidr]
   direction     = "INGRESS"
   priority      = 1000
   description   = "Allow internal traffic within the VPC"
@@ -154,7 +124,7 @@ resource "google_compute_instance" "jumpbox" {
     device_name = "jumpbox"
 
     initialize_params {
-      image = "projects/debian-cloud/global/images/debian-12-bookworm-v20240415"
+      image = var.image
       size  = 10
       type  = "pd-balanced"
     }
@@ -214,6 +184,7 @@ module "k8s-node-cp" {
   node_type   = "cp"
   subnetwork  = google_compute_subnetwork.vpc_subnetwork.self_link
   zone        = var.zone
+  image       = var.image
 }
 
 module "k8s-node-worker" {
@@ -222,4 +193,5 @@ module "k8s-node-worker" {
   node_type   = "worker"
   subnetwork  = google_compute_subnetwork.vpc_subnetwork.self_link
   zone        = var.zone
+  image       = var.image
 }

@@ -17,3 +17,8 @@ variable "zone" {
   description = "The GCP zone"
   type        = string
 }
+
+variable "image" {
+    description = "The image to use for the nodes"
+    type        = string
+}

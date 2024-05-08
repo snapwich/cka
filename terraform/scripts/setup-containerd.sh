@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 OS=linux
 #ARCH=arm64
@@ -20,6 +20,7 @@ sudo tar Cxzvf /usr/local $CONTAINERD_FILE
 
 sudo mkdir -p /usr/local/lib/systemd/system
 curl -L https://raw.githubusercontent.com/containerd/containerd/main/containerd.service | sudo tee /usr/local/lib/systemd/system/containerd.service  > /dev/null 
+
 sudo systemctl daemon-reload
 sudo systemctl enable --now containerd
  
@@ -32,4 +33,4 @@ sudo tar Cxzvf /opt/cni/bin $PLUGINS_FILE
 
 sudo mkdir -p /etc/containerd
 containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/' | sudo tee /etc/containerd/config.toml > /dev/null
-
+sudo systemctl restart containerd

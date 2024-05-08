@@ -6,7 +6,7 @@ resource "google_compute_instance" "k8s-node" {
     device_name = "k8s-node-${var.node_type}-${count.index}"
 
     initialize_params {
-      image = "projects/debian-cloud/global/images/debian-12-bookworm-v20240415"
+      image = var.image
       size  = 10
       type  = "pd-standard"
     }
