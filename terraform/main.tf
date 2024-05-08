@@ -104,18 +104,6 @@ resource "google_compute_firewall" "allow_internal" {
   description   = "Allow internal traffic within the VPC"
 }
 
-resource "google_compute_firewall" "allow_egress" {
-  name    = "allow-egress"
-  network = google_compute_network.vpc_network.self_link
-
-  allow {
-    protocol = "all"
-  }
-
-  direction = "EGRESS"
-  destination_ranges = ["0.0.0.0/0"]
-}
-
 resource "google_dns_managed_zone" "k8s-cka" {
   name        = "k8s-cka-internal"
   dns_name    = "internal."
