@@ -1,3 +1,8 @@
+variable "project" {
+  description = "The GCP project"
+  default     = "richsnapp-174618"
+}
+
 variable "image" {
   description = "The image to use for the nodes"
   default     = "projects/debian-cloud/global/images/debian-12-bookworm-v20240415"
@@ -30,10 +35,20 @@ variable "zone" {
 
 variable "cp_count" {
   description = "The number of control plane nodes to create"
-  default     = 1
+  default     = 3
 }
 
 variable "worker_count" {
   description = "The number of worker nodes to create"
   default     = 1
+}
+
+variable "ssh_user" {
+  description = "The SSH user to use for the jumpbox"
+  default     = "ansible"
+}
+
+variable "ssh_key_file" {
+  description = "The public SSH key file to use for the jumpbox"
+  default     = "~/.ssh/id_rsa.pub"
 }

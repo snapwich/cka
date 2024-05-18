@@ -1,8 +1,21 @@
 
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "5.28.0"
+    }
+    ansible = {
+      source  = "ansible/ansible"
+      version = "1.3.0"
+    }
+  }
+}
+
 provider "google" {
   credentials = file("credentials.json")
-  project     = "richsnapp-174618"
-  region      = "us-west1"
+  project     = var.project
+  region      = var.region
 }
 
 resource "google_compute_network" "vpc_network" {
@@ -168,6 +181,20 @@ resource "google_compute_instance" "jumpbox" {
 
   tags = ["ssh"]
   zone = var.zone
+
+  metadata = {
+    ssh-keys = "${var.ssh_user}:${file(var.ssh_key_file)}"
+  }
+}
+
+resource "ansible_host" "k8s-jumpbox" {
+  name = google_compute_instance.jumpbox.name
+  groups = ["bastion"]
+
+  variables = {
+    ansible_user = var.ssh_user
+    ansible_host = google_compute_instance.jumpbox.network_interface[0].access_config[0].nat_ip
+  }
 }
 
 

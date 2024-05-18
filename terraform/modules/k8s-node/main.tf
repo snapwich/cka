@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    ansible = {
+      source  = "ansible/ansible"
+      version = "1.3.0"
+    }
+  }
+}
+
 resource "google_compute_instance" "k8s-node" {
   count = var.node_count
 
@@ -44,5 +53,23 @@ resource "google_compute_instance" "k8s-node" {
     enable_vtpm                 = true
   }
 
+  metadata = {
+    ssh-keys = "${var.ssh_user}:${file(var.ssh_key_file)}"
+  }
+
   zone = var.zone
+}
+
+resource "ansible_host" "k8s-node" {
+  count = var.node_count
+
+  name = google_compute_instance.k8s-node[count.index].name
+  groups = concat(
+    [var.node_type == "cp" ? "kube_control_plane" : "kube_node", "k8s_cluster"],
+    var.node_type == "cp" ? ["etcd"] : []
+  )
+
+  variables = {
+    ansible_host = google_compute_instance.k8s-node[count.index].network_interface[0].network_ip
+  }
 }
