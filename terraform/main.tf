@@ -13,7 +13,7 @@ terraform {
 }
 
 provider "google" {
-  credentials = file("credentials.json")
+  credentials = file("./inputs/credentials.json")
   project     = var.project
   region      = var.region
 }
@@ -110,25 +110,25 @@ resource "google_dns_record_set" "k8s_cp" {
   type         = "A"
   ttl          = 300
   managed_zone = google_dns_managed_zone.k8s-cka.name
-  rrdatas      = [module.k8s-node-cp.k8s-node[0].network_interface[0].network_ip]
+  rrdatas      = [module.k8s-node-cp.k8s-nodes[0].network_interface[0].network_ip]
 }
 
 resource "google_dns_record_set" "k8s_nodes_cp" {
   count        = var.cp_count
-  name         = "${module.k8s-node-cp.k8s-node[count.index].name}.internal."
+  name         = "${module.k8s-node-cp.k8s-nodes[count.index].name}.internal."
   type         = "A"
   ttl          = 300
   managed_zone = google_dns_managed_zone.k8s-cka.name
-  rrdatas      = [module.k8s-node-cp.k8s-node[count.index].network_interface[0].network_ip]
+  rrdatas      = [module.k8s-node-cp.k8s-nodes[count.index].network_interface[0].network_ip]
 }
 
 resource "google_dns_record_set" "k8s_nodes_worker" {
   count        = var.worker_count
-  name         = "${module.k8s-node-worker.k8s-node[count.index].name}.internal."
+  name         = "${module.k8s-node-worker.k8s-nodes[count.index].name}.internal."
   type         = "A"
   ttl          = 300
   managed_zone = google_dns_managed_zone.k8s-cka.name
-  rrdatas      = [module.k8s-node-worker.k8s-node[count.index].network_interface[0].network_ip]
+  rrdatas      = [module.k8s-node-worker.k8s-nodes[count.index].network_interface[0].network_ip]
 }
 
 resource "google_compute_instance" "jumpbox" {
@@ -212,6 +212,7 @@ module "k8s-node-cp" {
   subnetwork  = google_compute_subnetwork.vpc_subnetwork.self_link
   zone        = var.zone
   image       = var.image
+  jumpbox_ip  = google_compute_instance.jumpbox.network_interface[0].access_config[0].nat_ip
 }
 
 module "k8s-node-worker" {
@@ -221,4 +222,5 @@ module "k8s-node-worker" {
   subnetwork  = google_compute_subnetwork.vpc_subnetwork.self_link
   zone        = var.zone
   image       = var.image
+  jumpbox_ip = google_compute_instance.jumpbox.network_interface[0].access_config[0].nat_ip
 }

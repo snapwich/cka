@@ -1,2 +1,6 @@
 .idea/
-kubespray-venv
+
+.kubespray-venv/
+kubespray/playbooks/ssh-bastion.conf
+
+inventory/credentials/

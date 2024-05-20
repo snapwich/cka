@@ -24,11 +24,17 @@ variable "image" {
 }
 
 variable "ssh_user" {
-  description = "The SSH user to use for the jumpbox"
+  description = "The SSH user to use for the nodes"
   default     = "ansible"
 }
 
+variable "jumpbox_ip" {
+  description = "The IP address of the jumpbox"
+  type        = string
+  default     = ""
+}
+
 variable "ssh_key_file" {
-  description = "The public SSH key file to use for the jumpbox"
+  description = "The public SSH key file to use for the nodes"
   default     = "~/.ssh/id_rsa.pub"
 }

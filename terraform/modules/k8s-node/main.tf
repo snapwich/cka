@@ -70,6 +70,8 @@ resource "ansible_host" "k8s-node" {
   )
 
   variables = {
+    ansible_user = var.ssh_user
     ansible_host = google_compute_instance.k8s-node[count.index].network_interface[0].network_ip
+    ansible_ssh_common_args = var.jumpbox_ip != "" ? "-o ProxyJump=${var.ssh_user}@${var.jumpbox_ip}" : null
   }
 }

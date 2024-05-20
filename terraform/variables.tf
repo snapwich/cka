@@ -1,6 +1,5 @@
 variable "project" {
   description = "The GCP project"
-  default     = "richsnapp-174618"
 }
 
 variable "image" {
@@ -10,7 +9,6 @@ variable "image" {
 
 variable "local_ip" {
   description = "The IP address of the local machine"
-  default     = "166.70.229.151/32"
 }
 
 variable "vpc_cidr" {
@@ -35,12 +33,10 @@ variable "zone" {
 
 variable "cp_count" {
   description = "The number of control plane nodes to create"
-  default     = 3
 }
 
 variable "worker_count" {
   description = "The number of worker nodes to create"
-  default     = 1
 }
 
 variable "ssh_user" {
