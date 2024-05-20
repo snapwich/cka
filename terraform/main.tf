@@ -13,7 +13,7 @@ terraform {
 }
 
 provider "google" {
-  credentials = file("./inputs/credentials.json")
+  credentials = file(var.gcp_credentials)
   project     = var.project
   region      = var.region
 }
@@ -63,7 +63,7 @@ resource "google_compute_firewall" "allow_ssh_jumpbox" {
     ports    = ["22"]
   }
 
-  source_ranges = [var.local_ip]
+  source_ranges = [var.public_ip]
 
   target_tags = ["ssh"]
 }

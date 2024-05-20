@@ -7,8 +7,8 @@ variable "image" {
   default     = "projects/debian-cloud/global/images/debian-12-bookworm-v20240415"
 }
 
-variable "local_ip" {
-  description = "The IP address of the local machine"
+variable "public_ip" {
+  description = "The public IP address of your local machine"
 }
 
 variable "vpc_cidr" {
@@ -47,4 +47,9 @@ variable "ssh_user" {
 variable "ssh_key_file" {
   description = "The public SSH key file to use for the jumpbox"
   default     = "~/.ssh/id_rsa.pub"
+}
+
+variable "gcp_credentials" {
+  description = "The path to the GCP credentials file"
+  default     = "./inputs/credentials.json"
 }
