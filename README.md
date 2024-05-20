@@ -11,16 +11,19 @@ cd $KUBESPRAYDIR
 pip install -U -r requirements.txt
 ```
 
-### Setup terraform infrastructure 
+### Setup terraform infrastructure
+
 create a `./terraform/inputs/vars.tfvars` file with the following content:
 ```hcl
 cp_count      = 3 # how many control plane nodes, 3 is default if not specified
 worker_count  = 1 # how many worker nodes, 1 is default if not specified
 project       = "<gcp project id>" # your gcp project id e.g. name-123456
-local_ip      = "0.0.0.0/32" # your local ip in CIDR /32, use ./scripts/whoami.sh if you don't know your public ip address
+public_ip      = "0.0.0.0/32" # your public ip in CIDR format, use ./scripts/whoami.sh if you don't know your public ip address
 ```
-
 other overridable variables available in `./terraform/variables.tf`
+
+create a servce account in GCP and download the json key file and place it in `./terraform/inputs/credentials.json` or
+somewhere else specified by your `gcp_credentials` variable.
 
 ```bash
 # from root of project
