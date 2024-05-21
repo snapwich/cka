@@ -68,6 +68,20 @@ resource "google_compute_firewall" "allow_ssh_jumpbox" {
   target_tags = ["ssh"]
 }
 
+resource "google_compute_firewall" "allow_kube_api_jumpbox" {
+  name    = "allow-apiserver-jumpbox"
+  network = google_compute_network.vpc_network.self_link
+
+  allow {
+    protocol = "tcp"
+    ports    = ["6443"]
+  }
+
+  source_ranges = [var.public_ip]
+
+  target_tags = ["apiserver"]
+}
+
 resource "google_compute_firewall" "allow_internal" {
   name    = "allow-all-internal"
   network = google_compute_network.vpc_network.name
@@ -110,7 +124,7 @@ resource "google_dns_record_set" "k8s_cp" {
   type         = "A"
   ttl          = 300
   managed_zone = google_dns_managed_zone.k8s-cka.name
-  rrdatas      = [module.k8s-node-cp.k8s-nodes[0].network_interface[0].network_ip]
+  rrdatas      = [for node in module.k8s-node-cp.k8s-nodes : node.network_interface[0].network_ip]
 }
 
 resource "google_dns_record_set" "k8s_nodes_cp" {
@@ -179,7 +193,7 @@ resource "google_compute_instance" "jumpbox" {
     enable_vtpm                 = true
   }
 
-  tags = ["ssh"]
+  tags = ["ssh", "apiserver"]
   zone = var.zone
 
   metadata = {

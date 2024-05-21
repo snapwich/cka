@@ -41,9 +41,10 @@ the result should be inside `/<project path>/.kubespray-venv/bin/ansible-playboo
 python venv with `./kubespray-venv/bin/activate`
 
 ```bash
-# from root of project
+# from root of project with venv activated
 cd ./kubespray
-ansible-playbook -i inventory/hosts.yaml ./kubespray/cluster.yml --become
+ansible-playbook -i ../inventory/hosts.yaml cluster.yml --become \
+  -e "{\"supplementary_addresses_in_ssl_keys\":[\"$(terraform -chdir=../terraform output -raw jumpbox_ip)\"]}"
 ```
 
 

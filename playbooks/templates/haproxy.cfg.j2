@@ -1,0 +1,23 @@
+global
+log stdout format raw local0
+maxconn 2000
+user haproxy
+group haproxy
+
+defaults
+log global
+mode tcp
+option tcplog
+timeout connect 10s
+timeout client 30s
+timeout server 30s
+
+frontend kubernetes-api
+bind *:6443
+default_backend kube-apiservers
+
+backend kube-apiservers
+balance roundrobin
+{% for host in groups['kube_control_plane'] %}
+server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check
+{% endfor %}
