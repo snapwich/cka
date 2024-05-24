@@ -1,4 +1,4 @@
-### Kubespray w/ terraform on GCP
+### Kubespray w/ custom terraform on GCP
 
 ### Setup kubespray VENV
 ```bash
@@ -26,7 +26,7 @@ create a servce account in GCP and download the json key file and place it in `.
 somewhere else specified by your `gcp_credentials` variable.
 
 ```bash
-# from root of project
+# from project root
 cd ./terraform
 terraform init
 terraform apply -var-file="./inputs/vars.tfvars"
@@ -41,11 +41,31 @@ the result should be inside `/<project path>/.kubespray-venv/bin/ansible-playboo
 python venv with `./kubespray-venv/bin/activate`
 
 ```bash
-# from root of project with venv activated
+# from project root with venv activated
 cd ./kubespray
 ansible-playbook -i ../inventory/hosts.yaml cluster.yml --become \
   -e "{\"supplementary_addresses_in_ssl_keys\":[\"$(terraform -chdir=../terraform output -raw jumpbox_ip)\"]}"
 ```
 
+### Install loadbalancer for api-server
+```bash
+# from project root
+cd ./playbooks
+ansible-playbook -i ../inventory/hosts.yaml load-balancer.yaml
+```
 
+## Interacting with your cluster
+
+### through SSH
+```bash
+# from project root
+cd ./terraform
+JUMPBOX_HOST=$(terraform output -raw jumpbox_ip)
+ANSIBLE_USER=$(terraform state pull | jq 'first(.resources[] | select(.type=="ansible_host")).instances[0].attributes.variables.ansible_user' -r)
+ssh -J $ANSIBLE_USER@$JUMPBOX_HOST $ANSIBLE_USER@k8s-node-cp-0.internal.
+
+# get the kubeconfig admin credentials from the cluster control-plane for kubectl
+./scripts/get-kubeconfig.sh
+kubectl get nodes
+```
 
