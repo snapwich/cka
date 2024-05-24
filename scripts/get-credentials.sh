@@ -13,6 +13,7 @@ ANSIBLE_USER=$(terraform -chdir="${SCRIPT_DIR}/../terraform" state pull |
   jq 'first(.resources[] | select(.type=="ansible_host")).instances[0].attributes.variables.ansible_user' -r)
 
 TMP_DIR=$(mktemp -d)
+trap 'rm -rf "${TMP_DIR}"' EXIT
 
 rsync -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -J ${ANSIBLE_USER}@${JUMPBOX_IP}" \
   --rsync-path="sudo rsync" \
@@ -33,5 +34,3 @@ KUBECONFIG="${TMP_DIR}/new-config:$HOME/.kube/config" kubectl config view --flat
 mv "${TMP_DIR}/config" "$HOME/.kube/config"
 
 kubectl config use-context cka-admin@cka-cluster
-
-rm -rf "${TMP_DIR}"
