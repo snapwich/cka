@@ -64,7 +64,7 @@ JUMPBOX_HOST=$(terraform output -raw jumpbox_ip)
 ANSIBLE_USER=$(terraform state pull | jq 'first(.resources[] | select(.type=="ansible_host")).instances[0].attributes.variables.ansible_user' -r)
 ssh -J $ANSIBLE_USER@$JUMPBOX_HOST $ANSIBLE_USER@k8s-node-cp-0.internal.
 
-# get the kubeconfig admin credentials from the cluster control-plane for kubectl
+# get the kubeconfig admin credentials from the cluster control-plane for kubectl, from project root
 ./scripts/get-kubeconfig.sh
 kubectl get nodes
 ```

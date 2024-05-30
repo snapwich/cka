@@ -31,6 +31,6 @@ KUBECONFIG="${TMP_DIR}/admin.conf" kubectl config view --raw -o json |
     json_to_yaml > "${TMP_DIR}/new-config"
 
 KUBECONFIG="${TMP_DIR}/new-config:$HOME/.kube/config" kubectl config view --flatten --merge > "${TMP_DIR}/config"
-mv "${TMP_DIR}/config" "$HOME/.kube/config"
+install -m 600 "${TMP_DIR}/config" "$HOME/.kube/config"
 
 kubectl config use-context cka-admin@cka-cluster
