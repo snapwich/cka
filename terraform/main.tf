@@ -82,6 +82,20 @@ resource "google_compute_firewall" "allow_kube_api_jumpbox" {
   target_tags = ["apiserver"]
 }
 
+resource "google_compute_firewall" "allow_kube_http_jumpbox" {
+  name    = "allow-http-jumpbox"
+  network = google_compute_network.vpc_network.self_link
+
+  allow {
+    protocol = "tcp"
+    ports    = ["80"]
+  }
+
+  source_ranges = [var.public_ip]
+
+  target_tags = ["http"]
+}
+
 resource "google_compute_firewall" "allow_internal" {
   name    = "allow-all-internal"
   network = google_compute_network.vpc_network.name
@@ -193,7 +207,7 @@ resource "google_compute_instance" "jumpbox" {
     enable_vtpm                 = true
   }
 
-  tags = ["ssh", "apiserver"]
+  tags = ["ssh", "apiserver", "http"]
   zone = var.zone
 
   metadata = {

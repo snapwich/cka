@@ -16,8 +16,20 @@ frontend kubernetes-api
 bind *:6443
 default_backend kube-apiservers
 
+frontend kubernetes-http
+bind *:80
+default_backend kube-cluster
+
 backend kube-apiservers
 balance roundrobin
 {% for host in groups['kube_control_plane'] %}
 server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check
+{% endfor %}
+
+backend kube-cluster
+balance roundrobin
+use_backend kube-apiservers
+{% for host in groups['kube_node'] %}
+# update the port to match the node port of your kubernetes service
+server {{ host }} {{ hostvars[host]['ansible_host'] }}:32359 check
 {% endfor %}
