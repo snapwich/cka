@@ -6,3 +6,4 @@ kubespray/playbooks/ssh-bastion.conf
 inventory/credentials/
 
 class/
+tmp/

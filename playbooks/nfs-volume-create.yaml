@@ -1,0 +1,25 @@
+# create NFS volume on specified host
+# Usage: ansible-playbook nfs-volume-create.yaml -e "nfs_host=<nfs_host> nfs_path=<nfs_path>"
+---
+- hosts: "{{ nfs_host }}"
+  tasks:
+    - name: Install NFS server
+      apt:
+        name: nfs-kernel-server
+        state: present
+      become: true
+    - name: Create NFS directory
+      file:
+          path: "{{ nfs_path }}"
+          state: directory
+      become: true
+    - name: Add NFS directory to exports
+      lineinfile:
+          path: /etc/exports
+          line: "{{ nfs_path }} *(rw,sync,no_root_squash,subtree_check)"
+      become: true
+    - name: Restart NFS server
+      service:
+          name: nfs-kernel-server
+          state: restarted
+      become: true

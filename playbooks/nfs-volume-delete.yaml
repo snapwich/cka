@@ -1,0 +1,21 @@
+# delete NFS volume on specified host
+# Usage: ansible-playbook nfs-volume-delete.yaml -e "nfs_host=<nfs_host> nfs_path=<nfs_path>"
+---
+- hosts: "{{ nfs_host }}"
+  tasks:
+    - name: Remove NFS directory
+      file:
+          path: "{{ nfs_path }}"
+          state: absent
+      become: true
+    - name: Remove NFS directory from exports
+      lineinfile:
+          path: /etc/exports
+          line: "{{ nfs_path }} *(rw,sync,no_root_squash,subtree_check)"
+          state: absent
+      become: true
+    - name: Restart NFS server
+      service:
+        name: nfs-kernel-server
+        state: restarted
+      become: true
