@@ -15,11 +15,8 @@ ANSIBLE_USER=$(terraform -chdir="${SCRIPT_DIR}/../terraform" state pull |
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "${TMP_DIR}"' EXIT
 
-rsync -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -J ${ANSIBLE_USER}@${JUMPBOX_IP}" \
-  --rsync-path="sudo rsync" \
-  --chown=$(whoami):$(whoami) \
-  "${ANSIBLE_USER}@k8s-node-cp-0.internal:/etc/kubernetes/admin.conf" \
-  "${TMP_DIR}/admin.conf"
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -J ${ANSIBLE_USER}@${JUMPBOX_IP} \
+  ${ANSIBLE_USER}@k8s-node-cp-0.internal. "sudo cat /etc/kubernetes/admin.conf" > "${TMP_DIR}/admin.conf"
 
 KUBECONFIG="${TMP_DIR}/admin.conf" kubectl config view --raw -o json |
   jq "(.users[] | select(.name == \"kubernetes-admin\").name) = \"cka-admin\" |
