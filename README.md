@@ -65,7 +65,7 @@ ANSIBLE_USER=$(terraform state pull | jq 'first(.resources[] | select(.type=="an
 ssh -J $ANSIBLE_USER@$JUMPBOX_HOST $ANSIBLE_USER@k8s-node-cp-0.internal.
 
 # get the kubeconfig admin credentials from the cluster control-plane for kubectl, from project root
-./scripts/get-kubeconfig.sh
+./scripts/get-credentials.sh
 kubectl get nodes
 ```
 
