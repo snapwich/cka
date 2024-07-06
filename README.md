@@ -57,6 +57,8 @@ ansible-playbook -i ../inventory/hosts.yaml cluster.yml --become \
 cd ./playbooks
 ansible-playbook -i ../inventory/hosts.yaml load-balancer.yaml
 ```
+the load balancer will split kube-api traffic among the control nodes through the jumpbox (bastion node in ansible inventory).
+it will also split http traffic to node port 32359 across all nodes if you want to setup a service.
 
 ## Interacting with your cluster
 
