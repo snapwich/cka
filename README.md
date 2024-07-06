@@ -1,5 +1,9 @@
 ### Kubespray w/ custom terraform on GCP
 
+### Prerequisites
+
+you'll need python, the terraform cli, and depending on the scripts you run you may need to install `jq` and `dig`
+
 ### Setup kubespray VENV
 ```bash
 # from root of project
